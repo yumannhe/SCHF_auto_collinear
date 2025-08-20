@@ -1,0 +1,17 @@
+setup.py
+functions_parameters/__init__.py
+functions_parameters/bond_table_generator.py
+functions_parameters/schf.py
+functions_parameters/tools.py
+functions_parameters/universal_parameters.py
+schf_auto_colinear.egg-info/PKG-INFO
+schf_auto_colinear.egg-info/SOURCES.txt
+schf_auto_colinear.egg-info/dependency_links.txt
+schf_auto_colinear.egg-info/not-zip-safe
+schf_auto_colinear.egg-info/requires.txt
+schf_auto_colinear.egg-info/top_level.txt
+test_codes/__init__.py
+test_codes/clean_schf_test.py
+test_codes/non_interacting_output_2_2.py
+test_codes/non_interacting_output_test.py
+test_codes/schf_test.py

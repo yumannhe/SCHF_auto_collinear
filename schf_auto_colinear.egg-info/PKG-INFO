@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: schf-auto-colinear
+Version: 0.1.0
+Summary: Self-Consistent Hartree-Fock for auto-colinear systems
+Author: Your Name
+Author-email: your.email@example.com
+Requires-Python: >=3.7
+Requires-Dist: numpy
+Requires-Dist: scipy
