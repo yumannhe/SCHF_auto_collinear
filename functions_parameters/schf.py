@@ -197,8 +197,8 @@ def collinear_schf_iteration(input_d, input_bond, deltas, a_list, k_points, a_la
         corr_k_arr = np.zeros((num_k_points, 2, norb, norb), dtype=np.complex128)
         for m in range(num_k_points):
             k = k_points[m]
-            h_mean_input_k = h_mean_input + np.stack((k_dependent_bond_mean_field_h(deltas, input_bond[0,:,:,:], k, v_arr, a_lattice), 
-                                       k_dependent_bond_mean_field_h(deltas, input_bond[1,:,:,:], k, v_arr, a_lattice)))
+            h_mean_input_k = h_mean_input + np.stack((k_dependent_bond_mean_field_h(deltas, input_bond[0], k, v_arr, a_lattice), 
+                                       k_dependent_bond_mean_field_h(deltas, input_bond[1], k, v_arr, a_lattice)))
             h_mean_initial_k = h_mean_initial_u*u
             for i in range(nshells):
                 h_mean_initial_k += h_mean_initial_v_arr[m,i]*v_arr[i]
@@ -239,6 +239,11 @@ def collinear_schf_iteration(input_d, input_bond, deltas, a_list, k_points, a_la
         c_difference = np.max(np.array([c_difference_d, c_difference_b]))
         c_log[iteration % c_log_length] = c_difference
         c_log_diff = np.max(np.abs(np.diff(c_log)))
+        # print('For iteration ' + str(iteration) +
+        # ', the e difference is %.3E and c difference is %.3E, the ground state energy difference '
+        # 'is %.3E, ' % (e_difference, c_difference,
+        #                                     (ground_state_e - gse) / num_k_points) +
+        # 'the c_log_diff is %.3E' % c_log_diff, flush=True)
         gse = ground_state_e
         input_d = input_d_iterated
         input_bond = input_bond_iterated
@@ -248,9 +253,38 @@ def collinear_schf_iteration(input_d, input_bond, deltas, a_list, k_points, a_la
     return input_d, input_bond, e_difference, c_difference, (gse-gse_o)/num_k_points, e_fermi_iterated, c_log, iteration
     
 
+def schf_fixed_filling_parallel_u(u, input_d_tot, input_bond_tot, deltas, a_list, k_points, a_lattice, h_k_o, h_mean_initial_u, h_mean_initial_v_arr, 
+                   gse_o, e_correction_u, e_correction_v_arr, v_arr, filling, temperature, e_threshold = 1E-8, 
+                   c_threshold = 1E-7, max_iter = 1000, c_log_length=10):
+    '''
+    perform the self-consistent field iteration for fixed filling and u
+    '''
+    norb = input_d_tot.shape[-1]
+    num_v1_points = v_arr.shape[0]
+    num_channel = input_d_tot.shape[0]
+    final_d = np.zeros((num_v1_points, num_channel, 2, norb))
+    final_bond = np.zeros((num_v1_points, num_channel, 2, deltas.shape[0], v_arr.shape[-1], norb, norb), dtype=np.complex128)
+    final_e_difference = np.zeros((num_v1_points, num_channel))
+    final_c_difference = np.zeros((num_v1_points, num_channel))
+    final_gse = np.zeros((num_v1_points, num_channel))
+    final_e_fermi_iterated = np.zeros((num_v1_points, num_channel))
+    final_c_log = np.zeros((num_v1_points, num_channel, c_log_length))
+    final_iteration = np.zeros((num_v1_points, num_channel))
+    for i in range(num_v1_points):
+        v_arr_i = v_arr[i]
+        for j in range(num_channel):
+            d_value = (u + np.sum(v_arr_i))/10
+            input_d = input_d_tot[j]*d_value
+            input_bond = input_bond_tot[j]*d_value
+            final_d[i,j], final_bond[i,j], final_e_difference[i,j], final_c_difference[i,j], final_gse[i,j], final_e_fermi_iterated[i,j], final_c_log[i,j], final_iteration[i,j] = \
+                collinear_schf_iteration(input_d, input_bond, deltas, a_list, k_points, a_lattice, h_k_o, h_mean_initial_u, h_mean_initial_v_arr, 
+                                        gse_o, e_correction_u, e_correction_v_arr, u, v_arr_i, filling, temperature, e_threshold = e_threshold, 
+                                        c_threshold = c_threshold, max_iter = max_iter, c_log_length=c_log_length)
+        print(f"u = {u}, v_arr = {v_arr_i}", flush=True)
+    return final_d, final_bond, final_e_difference, final_c_difference, final_gse, final_e_fermi_iterated, final_c_log, final_iteration
+            
 
-
-
+    
 
 
 
