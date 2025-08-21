@@ -1,15 +1,3 @@
-import sys
-import os
-# Add the project root to Python path for direct script execution
-script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(script_dir)
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-else:
-    # Move project_root to the front of sys.path
-    sys.path.remove(project_root)
-    sys.path.insert(0, project_root)
-
 import numpy as np
 from functions_parameters.schf import bond_orders, non_interacting_outputs, mean_field_h_k_independent, mean_field_u, k_dependent_bond_mean_field_h
 from functions_parameters.universal_parameters import a, b

@@ -1,8 +1,3 @@
-try:
-    import setup_path
-except ImportError:
-    # If setup_path not found, we're probably running as module
-    pass
 import numpy.linalg as la
 import numpy as np
 from itertools import product

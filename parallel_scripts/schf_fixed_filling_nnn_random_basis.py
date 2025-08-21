@@ -1,4 +1,3 @@
-import setup_path
 import time
 import os as os
 from functions_parameters.universal_parameters import a, b, a1_basis, e2_basis1, e2_basis2
