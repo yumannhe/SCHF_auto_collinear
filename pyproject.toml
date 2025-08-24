@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "schf-auto-colinear"
+version = "0.1.0"
+description = "Self-Consistent Hartree-Fock calculations for collinear systems using JAX"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["physics", "chemistry", "quantum", "hartree-fock", "self-consistent", "jax", "numpy", "scientific-computing", "condensed-matter"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    "numpy>=2.0.0",
+    "jax>=0.7.0",
+    "jaxlib>=0.7.0",
+    "matplotlib>=3.0.0",
+    "scipy>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=1.0.0",
+]
+jupyter = [
+    "jupyter>=1.0.0",
+    "ipykernel>=6.0.0",
+    "ipywidgets>=8.0.0",
+    "notebook>=7.0.0",
+]
+all = [
+    "numpy>=2.0.0",
+    "jax>=0.7.0",
+    "jaxlib>=0.7.0",
+    "matplotlib>=3.0.0",
+    "scipy>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=1.0.0",
+    "jupyter>=1.0.0",
+    "ipykernel>=6.0.0",
+    "ipywidgets>=8.0.0",
+    "notebook>=7.0.0",
+]
+
+[project.scripts]
+schf-run = "parallel_scripts.jax_schf_fixed_filling_u_v1_v2_random_basis:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["functions_parameters*", "parallel_scripts*", "test_codes*", "data_analysis*"]
+
+[tool.setuptools.package-data]
+"functions_parameters" = ["*.npy", "*.py"]
+"data_analysis" = ["*.pkl", "*.ipynb"]
+
+[tool.black]
+line-length = 88
+target-version = ['py311', 'py312', 'py313']
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["test_codes"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+

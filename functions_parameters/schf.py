@@ -153,6 +153,7 @@ def non_interacting_outputs(k_mesh_points, deltas, a_list, mu, t_arr, a_lattice,
         v_dic[i] = eigvecs
         total_e = np.sort(e_dic.reshape(-1))
     e_fermi_iterated = fermi_level_bisection(total_e, filling, temperature)
+    print(f'e_fermi_iterated: {e_fermi_iterated}', flush=True)
     ground_state_e = 0
     for m in range(num_k_points):
         k = k_mesh_points[m]

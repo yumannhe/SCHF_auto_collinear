@@ -96,3 +96,49 @@ def fermi_level_bisection(energy_sequence, target_filling, t, tolerance=1E-9):
     # print(iteration)
     # print(diff)
     return fermi_e
+
+
+def rot_symm_m_check_d(d, c6, c3, c2):
+    '''
+    check the rotation symmetry of the density of correlation matrix o 
+    c6, c3, c2 are the rotation matrices for the 6-fold, 3-fold, and 2-fold symmetry.
+    return the difference between the correlation matrix o and the rotation matrices and magnetic order.
+    '''
+    density_arr = d[0] + d[1]
+    magnetism_arr = d[0] - d[1]
+    c6_diff = np.max(np.abs(c6@density_arr - density_arr))
+    c3_diff = np.max(np.abs(c3@density_arr - density_arr))
+    c2_diff = np.max(np.abs(c2@density_arr - density_arr))
+    return c6_diff, c3_diff, c2_diff, magnetism_arr
+
+def rot_symm_m_check_corr_o_diag_bond(corr_o, c6, c3, c2):
+    '''
+    check the rotation symmetry of the density of correlation matrix o 
+    c6, c3, c2 are the rotation matrices for the 6-fold, 3-fold, and 2-fold symmetry.
+    return the difference between the correlation matrix o and the rotation matrices and magnetic order.
+    '''
+    diag_entries = np.diagonal(corr_o, axis1=1, axis2=2)
+    density_arr = diag_entries[0] + diag_entries[1]
+    magnetism_arr = diag_entries[0] - diag_entries[1]
+    c6_diff_diag = np.max(np.abs(c6@density_arr - density_arr))
+    c3_diff_diag = np.max(np.abs(c3@density_arr - density_arr))
+    c2_diff_diag = np.max(np.abs(c2@density_arr - density_arr))
+    bond_diff_spin = np.max(np.abs(corr_o[0] - corr_o[1] - magnetism_arr))
+    return c6_diff_diag, c3_diff_diag, c2_diff_diag, magnetism_arr, bond_diff_spin 
+
+
+def translation_check_corr_o_diag(corr_o, translation_a1, translation_a2):
+    '''
+    check the translation symmetry of the density of correlation matrix o 
+    translation_a1, translation_a2 are the translation matrices for the a1 and a2 basis.
+    return the difference between the correlation matrix o and the translation matrices.
+    '''
+    diag_entries = np.diagonal(corr_o, axis1=1, axis2=2)
+    density_arr = diag_entries[0] + diag_entries[1]
+    magnetism_arr = diag_entries[0] - diag_entries[1]
+    translation_a1_diff_c = np.max(np.abs(translation_a1@density_arr - density_arr))
+    translation_a2_diff_c = np.max(np.abs(translation_a2@density_arr - density_arr))
+    translation_a1_diff_m = np.max(np.abs(translation_a1@magnetism_arr - magnetism_arr))
+    translation_a2_diff_m = np.max(np.abs(translation_a2@magnetism_arr - magnetism_arr))
+    return translation_a1_diff_c, translation_a2_diff_c, translation_a1_diff_m, translation_a2_diff_m
+

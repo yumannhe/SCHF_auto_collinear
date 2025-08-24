@@ -1,0 +1,31 @@
+# Include README and documentation
+include README.md
+include LICENSE
+include requirements.txt
+
+# Include Python files
+recursive-include functions_parameters *.py
+recursive-include parallel_scripts *.py
+recursive-include test_codes *.py
+recursive-include data_analysis *.py
+
+# Include data files
+recursive-include functions_parameters *.npy
+recursive-include data_analysis *.pkl
+recursive-include data_analysis *.ipynb
+
+# Include configuration files
+include *.cfg
+include *.ini
+include *.toml
+
+# Exclude unnecessary files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude __pycache__
+global-exclude .DS_Store
+global-exclude *.egg-info
+global-exclude .git
+global-exclude .gitignore
+global-exclude .venv
+

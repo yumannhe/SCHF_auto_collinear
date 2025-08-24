@@ -1,0 +1,2 @@
+[console_scripts]
+schf-run = parallel_scripts.jax_schf_fixed_filling_u_v1_v2_random_basis:main

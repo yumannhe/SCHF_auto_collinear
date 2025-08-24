@@ -1,9 +1,55 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: schf-auto-colinear
 Version: 0.1.0
-Summary: Self-Consistent Hartree-Fock for auto-colinear systems
+Summary: Self-Consistent Hartree-Fock calculations for collinear systems using JAX
+Home-page: https://github.com/yourusername/SCHF_auto_colinear
 Author: Your Name
-Author-email: your.email@example.com
-Requires-Python: >=3.7
-Requires-Dist: numpy
-Requires-Dist: scipy
+Author-email: Your Name <your.email@example.com>
+License: MIT
+Keywords: physics,chemistry,quantum,hartree-fock,self-consistent,jax,numpy,scientific-computing,condensed-matter
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Physics
+Classifier: Topic :: Scientific/Engineering :: Chemistry
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=2.0.0
+Requires-Dist: jax>=0.7.0
+Requires-Dist: jaxlib>=0.7.0
+Requires-Dist: matplotlib>=3.0.0
+Requires-Dist: scipy>=1.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=22.0.0; extra == "dev"
+Requires-Dist: flake8>=5.0.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"
+Provides-Extra: jupyter
+Requires-Dist: jupyter>=1.0.0; extra == "jupyter"
+Requires-Dist: ipykernel>=6.0.0; extra == "jupyter"
+Requires-Dist: ipywidgets>=8.0.0; extra == "jupyter"
+Requires-Dist: notebook>=7.0.0; extra == "jupyter"
+Provides-Extra: all
+Requires-Dist: numpy>=2.0.0; extra == "all"
+Requires-Dist: jax>=0.7.0; extra == "all"
+Requires-Dist: jaxlib>=0.7.0; extra == "all"
+Requires-Dist: matplotlib>=3.0.0; extra == "all"
+Requires-Dist: scipy>=1.0.0; extra == "all"
+Requires-Dist: pytest>=7.0.0; extra == "all"
+Requires-Dist: pytest-cov>=4.0.0; extra == "all"
+Requires-Dist: black>=22.0.0; extra == "all"
+Requires-Dist: flake8>=5.0.0; extra == "all"
+Requires-Dist: mypy>=1.0.0; extra == "all"
+Requires-Dist: jupyter>=1.0.0; extra == "all"
+Requires-Dist: ipykernel>=6.0.0; extra == "all"
+Requires-Dist: ipywidgets>=8.0.0; extra == "all"
+Requires-Dist: notebook>=7.0.0; extra == "all"
+Dynamic: author
+Dynamic: home-page
+Dynamic: requires-python
