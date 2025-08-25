@@ -4,6 +4,8 @@ from functions_parameters.jax_schf_helpers import *
 import jax
 import jax.numpy as jnp
 from jax import lax
+from jax import pmap, vmap, local_device_count
+from jax.tree_util import tree_map
 
 # ---- numeric mode ----
 from jax import config as _jax_config
@@ -138,6 +140,7 @@ def schf_single_job(
 # ----------------------
 # parallelization for fixed filling
 # ----------------------
+# vmap singly is not true parallelization, and still quite slow
 def schf_fixed_filling_prallel_u_v(
     schf_core: Callable,
     Htb: Array,
@@ -173,13 +176,90 @@ def schf_fixed_filling_prallel_u_v(
 
     # map over input channels
     # density and bonds come in pairs
-    over_channel = jax.vmap(run_one, in_axes=(None, None, 0, 0))
+    over_channel = vmap(run_one, in_axes=(None, None, 0, 0))
     # map over v
-    over_v = jax.vmap(over_channel, in_axes=(None, 0, None, None))
+    over_v = vmap(over_channel, in_axes=(None, 0, None, None))
     # map over u
-    over_u = jax.vmap(over_v, in_axes=(0, None, None, None))
+    over_u = vmap(over_v, in_axes=(0, None, None, None))
 
     # run the schf
     output = over_u(u, v_arr, input_d_tot, input_bond_tot)
 
     return output
+
+
+# ----------------------
+# parallelization for fixed filling using pmap
+# ----------------------
+def schf_fixed_filling_pmap_over_u(
+    schf_core: Callable,
+    Htb: Array,
+    a_list: Array,
+    phase_pos: Array,
+    phase_neg: Array,
+    dict_ref: PyTree,
+    input_d_tot: Array,
+    input_bond_tot: Array,
+    filling: float,
+    u: Array,
+    v_arr: Array,
+    temperature: float,
+    e_threshold: float = 1e-8,
+    c_threshold: float = 1e-7,
+    max_iter: int = 500,
+):
+    """
+    parallelize the schf_core over u, v and input_d_tot, input_bond_tot using pmap
+    input_d_tot: (nchannels, 2, norb)
+    input_bond_tot: (nchannels, 2, nshells, norb, norb)
+    u: (nU,)
+    v_arr: (nV, nshells)
+    temperature: float
+    e_threshold: float
+    c_threshold: float
+    max_iter: int
+    """
+    nU = u.shape[0]
+    nV, nshells = v_arr.shape
+    nCh = input_d_tot.shape[0]
+
+    # JIT once to avoid recompiles inside pmap
+    schf_core_jit = jax.jit(schf_core, static_argnames=('max_iter',))
+
+    def run_one(u_i, v_i, input_d, input_bond):
+        return schf_core_jit(
+            Htb, a_list, phase_pos, phase_neg, dict_ref, 
+            input_d, input_bond, filling, u_i, v_i, temperature, 
+            e_threshold, c_threshold, max_iter
+        )
+
+    # For a single u_i, sweep all v and all channels locally (keeps d/bond paired)
+    def run_for_one_u(u_i):
+        # over channels (pair d and bond via same channel index)
+        def over_channel(v_i):
+            return vmap(run_one, in_axes=(None, None, 0, 0))(
+                u_i, v_i, input_d_tot, input_bond_tot
+            )  # → (nCh, ...) dict/tree
+        # then over v
+        return vmap(over_channel, in_axes=(0,))(v_arr)  # → (nV, nCh, ...) dict/tree
+    
+    D = local_device_count()
+
+    # Jax requires the size of pmap mapping axis matches exactly with D
+    # so we meed tp safely chunk just in case. But in my case, 
+    # I could just use the exact number of cores with small nU
+    def pmap_chunk(u_chunk):
+        L = u_chunk.shape[0]
+        if L<D:
+            u_chunk = jnp.pad(u_chunk, (0, D-L))
+        out = pmap(run_for_one_u, in_axes=0)(u_chunk)
+        return tree_map(lambda x: x[:L], out) 
+    
+    if nU <=D:
+        return pmap_chunk(u)
+    
+    # nU > D: loop over chunks of size D on the host; compiled pmap is reused
+    pieces = [pmap_chunk(u[i:i+D]) for i in range(0, nU, D)]
+    return tree_map(lambda *xs: jnp.concatenate(xs, axis=0), *pieces)
+
+    
