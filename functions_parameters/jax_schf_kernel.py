@@ -76,19 +76,23 @@ def schf_single_job(
         # contrcut the Hamiltonian:
         hk = Htb + h_mean_input - h_mean_initial
         
-        # a more GPU safer way to diagonalize the Hamiltonian to avoid overloads
-        def sequential_diagonalize(hk):
-            # enforce Hermitian
-            hk = 0.5*(hk + jnp.swapaxes(hk, -1, -2).conj())
-            def process_one(carry, x):
-                eigvals, eigvecs = jnp.vmap(jnp.linalg.eigh)(x)
-                return carry, (eigvals, eigvecs)
+        # # a more GPU safer way to diagonalize the Hamiltonian to avoid overloads
+        # def sequential_diagonalize(hk):
+        #     # enforce Hermitian
+        #     hk = 0.5*(hk + jnp.swapaxes(hk, -1, -2).conj())
+        #     def process_one(carry, x):
+        #         eigvals, eigvecs = jax.vmap(jnp.linalg.eigh)(x)
+        #         return carry, (eigvals, eigvecs)
 
-            _, results = lax.scan(process_one, None, hk)
-            eigvals, eigvecs = results
-            return eigvals, eigvecs
+        #     _, results = lax.scan(process_one, None, hk)
+        #     eigvals, eigvecs = results
+        #     return eigvals, eigvecs
 
-        eigvals, eigvecs = sequential_diagonalize(hk)
+        # eigvals, eigvecs = sequential_diagonalize(hk)
+
+        # GPU is not that efficient in this case, so we use the naive way
+        hk = 0.5*(hk + jnp.swapaxes(hk, -1, -2).conj())
+        eigvals, eigvecs = jnp.linalg.eigh(hk)
 
         # obtain the new state
         e_fermi_new, _, bi_converged_new, _ = fermi_level_bisection_core(eigvals, filling, temperature)
