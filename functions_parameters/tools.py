@@ -127,15 +127,14 @@ def rot_symm_m_check_corr_o_diag_bond(corr_o, c6, c3, c2):
     return c6_diff_diag, c3_diff_diag, c2_diff_diag, magnetism_arr, bond_diff_spin 
 
 
-def translation_check_corr_o_diag(corr_o, translation_a1, translation_a2):
+def translation_check_d(d, translation_a1, translation_a2):
     '''
     check the translation symmetry of the density of correlation matrix o 
     translation_a1, translation_a2 are the translation matrices for the a1 and a2 basis.
     return the difference between the correlation matrix o and the translation matrices.
     '''
-    diag_entries = np.diagonal(corr_o, axis1=1, axis2=2)
-    density_arr = diag_entries[0] + diag_entries[1]
-    magnetism_arr = diag_entries[0] - diag_entries[1]
+    density_arr = d[0] + d[1]
+    magnetism_arr = d[0] - d[1]
     translation_a1_diff_c = np.max(np.abs(translation_a1@density_arr - density_arr))
     translation_a2_diff_c = np.max(np.abs(translation_a2@density_arr - density_arr))
     translation_a1_diff_m = np.max(np.abs(translation_a1@magnetism_arr - magnetism_arr))

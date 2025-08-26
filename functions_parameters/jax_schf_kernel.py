@@ -241,14 +241,16 @@ def schf_fixed_filling_pmap_over_u(
     
     D = local_device_count()
 
+    # avoiding recompiles of pmap inside loop for chunking 
+    per_device = pmap(run_for_one_u, in_axes=0, out_axes=0)
+
     # Jax requires the size of pmap mapping axis matches exactly with D
-    # so we meed tp safely chunk just in case. But in my case, 
-    # I could just use the exact number of cores with small nU
+    # so we meed tp safely chunk just in case. 
     def pmap_chunk(u_chunk):
         L = u_chunk.shape[0]
         if L<D:
             u_chunk = jnp.pad(u_chunk, (0, D-L))
-        out = pmap(run_for_one_u, in_axes=0)(u_chunk)
+        out = per_device(u_chunk)
         return tree_map(lambda x: x[:L], out) 
     
     if nU <=D:
@@ -257,5 +259,154 @@ def schf_fixed_filling_pmap_over_u(
     # nU > D: loop over chunks of size D on the host; compiled pmap is reused
     pieces = [pmap_chunk(u[i:i+D]) for i in range(0, nU, D)]
     return tree_map(lambda *xs: jnp.concatenate(xs, axis=0), *pieces)
+
+
+# ----------------------
+# parallelization for fixed u-v pairing but different filling
+# ----------------------
+def schf_fixed_u_v_pair_pmap_over_filling(
+    schf_core: Callable,
+    Htb: Array,
+    a_list: Array,
+    e_all: Array, 
+    v_all: Array, 
+    v_all_dagger: Array,
+    phase_pos: Array,
+    phase_neg: Array,
+    input_d_tot: Array,
+    input_bond_tot: Array,
+    filling: Array,
+    u: Array,
+    v_arr: Array,
+    temperature: float,
+    e_threshold: float = 1e-8,
+    c_threshold: float = 1e-7,
+    max_iter: int = 500,
+):
+    """
+    parallelize the schf_core over filling using pmap
+    filling: (nfilling,)
+    u: (nU,)
+    v_arr: (nV, nshells)
+    temperature: float
+    e_threshold: float
+    c_threshold: float
+    max_iter: int
+    """
+    # nU should be the same as nV
+    nU = u.shape[0]
+    nV, nshells = v_arr.shape
+    nCh = input_d_tot.shape[0]
+    nfilling = filling.shape[0]
+
+    # JIT once to avoid recompiles inside pmap
+    schf_core_jit = jax.jit(schf_core, static_argnames=('max_iter',))
+
+    def run_one(filling_i, dict_ref_i, u_i, v_i, input_d, input_bond):
+        return schf_core_jit(
+            Htb, a_list, phase_pos, phase_neg, dict_ref_i,
+            input_d, input_bond, filling_i, u_i, v_i, temperature, 
+            e_threshold, c_threshold, max_iter
+        )
+    
+    # For a single filling, sweep all u,v and all channels locally (keeps d/bond paired)
+    def run_for_one_filling(filling_i):
+        dict_ref_i = prepare_reference_state(filling_i, a_list, Htb, e_all, v_all, v_all_dagger, phase_pos, phase_neg, temperature)
+        # over channels (pair d and bond via same channel index)
+        def over_channel(dict_ref_i, u_i, v_i):
+            return vmap(run_one, in_axes=(None, None, None, None, 0, 0))(
+                filling_i, dict_ref_i, u_i, v_i, input_d_tot, input_bond_tot
+            )  # → (nCh, ...) dict/tree
+        # then over u and v
+        return vmap(over_channel, in_axes=(None, 0, 0))(dict_ref_i, u, v_arr)
+
+    D = local_device_count()
+
+    # avoiding recompiles of pmap inside loop for chunking 
+    per_device = pmap(run_for_one_filling, in_axes=0, out_axes=0)
+
+    def pmap_chunk(filling_chunk):
+        L = filling_chunk.shape[0]
+        if L<D:
+            filling_chunk = jnp.pad(filling_chunk, (0, max(0, D-L)))
+        out = per_device(filling_chunk)
+        return tree_map(lambda x: x[:L], out) 
+
+    if nfilling <=D:
+        return pmap_chunk(filling)
+    
+    # nfilling > D: loop over chunks of size D on the host; compiled pmap is reused
+    pieces = [pmap_chunk(filling[i:i+D]) for i in range(0, nfilling, D)]
+    return tree_map(lambda *xs: jnp.concatenate(xs, axis=0), *pieces)
+
+
+def schf_fixed_filling_u_pmap_over_v1_v2(
+    schf_core: Callable,
+    Htb: Array,
+    a_list: Array,
+    phase_pos: Array,
+    phase_neg: Array,
+    dict_ref: PyTree,
+    input_d_tot: Array,
+    input_bond_tot: Array,
+    filling: float,
+    u: float,
+    v_1: Array,
+    v_2: Array,
+    temperature: float,
+    e_threshold: float = 1e-8,
+    c_threshold: float = 1e-7,
+    max_iter: int = 500,
+):
+    """
+    parallelize the schf_core over v1, v2 using pmap
+    This is used for the two-shell schf
+    nshells = 2
+    """
+    nshells = 2
+
+    nV1, nV2 = v_1.shape[0], v_2.shape[0]
+    nCh = input_d_tot.shape[0]
+
+    schf_core_jit = jax.jit(schf_core, static_argnames=('max_iter',))
+
+    def run_one(v_i, input_d, input_bond):
+        return schf_core_jit(
+            Htb, a_list, phase_pos, phase_neg, dict_ref, 
+            input_d, input_bond, filling, u, v_i, temperature, 
+            e_threshold, c_threshold, max_iter
+        )
+
+    
+    def run_for_one_v1(v1_i):
+        v1_arr = jnp.ones((nV2,))*v1_i
+        v_i = jnp.stack((v1_arr, v_2), axis=1)
+        # over channels (pair d and bond via same channel index)
+        def over_channel(v_i):
+            return vmap(run_one, in_axes=(None, 0, 0))(
+                v_i, input_d_tot, input_bond_tot
+            )  # → (nCh, ...) dict/tree
+        # then over u and v
+        return vmap(over_channel, in_axes=0)(v_arr)
+
+    D = local_device_count()
+
+    # avoiding recompiles of pmap inside loop for chunking 
+    per_device = pmap(run_for_one_v1, in_axes=0, out_axes=0)
+
+    def pmap_chunk(v1_chunk):
+        L = v1_chunk.shape[0]
+        if L<D:
+            v1_chunk = jnp.pad(v1_chunk, (0, max(0, D-L)))
+        out = per_device(v1_chunk)
+        return tree_map(lambda x: x[:L], out) 
+
+    if nV1 <=D:
+        return pmap_chunk(v_1)
+    
+    # nV1 > D: loop over chunks of size D on the host; compiled pmap is reused
+    pieces = [pmap_chunk(v_1[i:i+D]) for i in range(0, nV1, D)]
+    return tree_map(lambda *xs: jnp.concatenate(xs, axis=0), *pieces)   
+
 
     
