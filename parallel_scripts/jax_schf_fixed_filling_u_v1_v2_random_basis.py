@@ -50,16 +50,14 @@ SCHF parameters:
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr.npy'))
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
+# scale the density to be a perturbation and match the density of the reference state
+input_d_tot = input_d_tot * filling/10.0
 num_channel = input_d_tot.shape[0]
-# num_channel = 1
-# input_d_tot = jnp.stack((jnp.ones(norb, dtype=jnp.complex128), jnp.ones(norb, dtype=jnp.complex128)))
-# input_d_tot /= jnp.sqrt(norb)
-# input_d_tot = input_d_tot.reshape(num_channel, 2, norb)
 
-# num_u_points = 16
-# u_arr = jnp.linspace(0, 0.75, num_u_points)
-num_u_points = 1
-u_arr = jnp.array([0.4])
+num_u_points = 16
+u_arr = jnp.linspace(0, 0.75, num_u_points)
+# num_u_points = 1
+# u_arr = jnp.array([0.4])
 v1_arr = u_arr
 v2_arr = jnp.zeros(num_u_points)
 v_arr = jnp.stack((v1_arr, v2_arr), axis=1)
