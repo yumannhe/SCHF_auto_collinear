@@ -55,7 +55,7 @@ num_channel = input_d_tot.shape[0]
 
 u = 0.75
 num_v1_points = 16
-v1_arr = jnp.linspace(0, u/2, num_v1_points)
+v1_arr = jnp.linspace(0, u, num_v1_points)
 v2_arr = v1_arr.copy()
 nshell = 2
 ndeltas = deltas.shape[0]
