@@ -52,7 +52,7 @@ input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
 num_channel = input_d_tot.shape[0]
 
 num_filling_points = 20
-filling_arr = -np.linspace(-2, 0, num_filling_points, endpoint=False)[::-1]
+filling_arr = -jnp.linspace(-1, 0, num_filling_points, endpoint=False)[::-1]
 num_u_points = 16
 u_arr = jnp.linspace(0, 0.75, num_u_points)
 v1_arr = u_arr/2
@@ -77,6 +77,7 @@ host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
 
 np.savez_compressed(
     os.path.join(project_root, "u_v1_v2_t_4_em4_random_basis_mesh_60_pmap_over_filling.npz"),
+    filling=np.asarray(filling_arr),
     u=np.asarray(u_arr),
     v=np.asarray(v_arr),
     d=host_res["d"],
