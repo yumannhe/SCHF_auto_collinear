@@ -33,7 +33,6 @@ radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
 # in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
 # calculate the correlation matrix
 temperature = 4E-4
-filling = 1/2
 mu = 2
 t_nn = 1
 t_nnn = -0.025
@@ -52,6 +51,8 @@ input_d_tot = input_d_tot * filling/10.0
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
 num_channel = input_d_tot.shape[0]
 
+num_filling_points = 20
+filling_arr = -np.linspace(-2, 0, num_filling_points, endpoint=False)[::-1]
 num_u_points = 16
 u_arr = jnp.linspace(0, 0.75, num_u_points)
 v1_arr = u_arr/2
@@ -70,7 +71,7 @@ filling = filling * 2
 '''
 SCHF parallel run:
 '''
-res = schf_fixed_u_v_pair_pmap_over_filling(schf_single_job, Htb, a_lists, e_all, v_all, v_all_dagger, phase_pos, phase_neg, input_d_tot, input_bond_tot, filling, u_arr, v_arr, temperature)
+res = schf_fixed_u_v_pair_pmap_over_filling(schf_single_job, Htb, a_lists, e_all, v_all, v_all_dagger, phase_pos, phase_neg, input_d_tot, input_bond_tot, filling_arr, u_arr, v_arr, temperature)
 
 host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
 
