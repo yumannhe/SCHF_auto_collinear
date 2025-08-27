@@ -380,13 +380,13 @@ def schf_fixed_filling_u_pmap_over_v1_v2(
     
     def run_for_one_v1(v1_i):
         v1_arr = jnp.ones((nV2,))*v1_i
-        v_i = jnp.stack((v1_arr, v_2), axis=1)
+        v_arr = jnp.stack((v1_arr, v_2), axis=1)
         # over channels (pair d and bond via same channel index)
         def over_channel(v_i):
             return vmap(run_one, in_axes=(None, 0, 0))(
                 v_i, input_d_tot, input_bond_tot
             )  # → (nCh, ...) dict/tree
-        # then over u and v
+        # then over v_2
         return vmap(over_channel, in_axes=0)(v_arr)
 
     D = local_device_count()
