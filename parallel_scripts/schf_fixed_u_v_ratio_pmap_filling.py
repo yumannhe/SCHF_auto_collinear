@@ -66,7 +66,7 @@ a_lists = jnp.asarray(a_lists)
 phase_pos = jnp.asarray(phase_pos)
 phase_neg = jnp.asarray(phase_neg)
 # double the filling to get the correct number of electrons
-filling = filling * 2
+filling_arr = filling_arr * 2
 
 '''
 SCHF parallel run:
