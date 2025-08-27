@@ -1,0 +1,103 @@
+import jax
+import jax.numpy as jnp
+import numpy as np
+import os
+from itertools import product
+
+from functions_parameters.jax_schf_kernel import schf_fixed_filling_u_pmap_over_v1_v2, schf_single_job
+from functions_parameters.jax_schf_helpers import *
+from functions_parameters.universal_parameters import a, b
+from functions_parameters.bond_table_generator import build_buckets_per_shell
+
+# ---- numeric mode ----
+from jax import config as _jax_config
+_jax_config.update("jax_enable_x64", True)  # use float64 by default
+
+Array = jnp.ndarray
+PyTree = Any
+
+'''
+preparation:
+'''
+# order is important. for sublattice a, b and c respectively
+basis_frac_o = np.array([[1/4, 0], [1/4, 1/4], [0, 1/4]])
+basis_frac_1 = basis_frac_o + np.array([0, 1/2])
+basis_frac_2 = basis_frac_o + np.array([1/2, 0])
+basis_frac_3 = basis_frac_o + np.array([1/2, 1/2])
+basis_frac = np.concatenate((basis_frac_o, basis_frac_1, basis_frac_2, basis_frac_3), axis=0)
+norb = basis_frac.shape[0]
+
+# halve the num_k_mesh
+num_k_mesh = 60//2
+# new translation vector
+a = a*2
+b = b/2
+
+# k_mesh
+b_0 = np.linspace(-b[0] / 2, b[0] / 2, num_k_mesh, endpoint=False)
+b_1 = np.linspace(-b[1] / 2, b[1] / 2, num_k_mesh, endpoint=False)
+k_mesh_points = np.vstack([v1 + v2 for v1, v2 in product(b_0, b_1)])
+num_k_points = k_mesh_points.shape[0]
+
+radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
+
+# in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
+# calculate the correlation matrix
+temperature = 4E-4
+# filling has to be 4 times before, as we have 4 unit cells in the 2x2 square lattice
+filling = 1/2*4
+mu = 2
+t_nn = 1
+t_nnn = -0.025
+t_arr = np.array([t_nn, t_nnn])
+
+phase_pos, phase_neg = precompute_k_phase_tables(deltas, a, k_mesh_points)
+Htb, e_all, v_all, v_all_dagger = hk_all_k_from_phases(mu, a_lists, t_arr, phase_neg)
+dict_ref = prepare_reference_state(filling, a_lists, Htb, e_all, v_all, v_all_dagger, phase_pos, phase_neg, temperature)
+
+'''
+SCHF parameters:
+'''
+# Get the project root directory (parent of parallel_scripts)
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr.npy'))
+input_d_tot = input_d_tot * filling/10.0
+input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
+num_channel = input_d_tot.shape[0]
+
+u = 0.75
+num_v1_points = 16
+v1_arr = jnp.linspace(0, u/2, num_v1_points)
+v2_arr = v1_arr.copy()
+nshell = 2
+ndeltas = deltas.shape[0]
+input_bond_tot = jnp.zeros((num_channel, ndeltas, 2, nshell, norb, norb), dtype=jnp.complex128)
+Htb = jnp.stack((jnp.asarray(Htb), jnp.asarray(Htb)), axis=1)
+a_lists = jnp.asarray(a_lists)
+phase_pos = jnp.asarray(phase_pos)
+phase_neg = jnp.asarray(phase_neg)
+# double the filling to get the correct number of electrons
+filling = filling * 2
+
+'''
+SCHF parallel run:
+'''
+res = schf_fixed_filling_u_pmap_over_v1_v2(schf_single_job, Htb, a_lists, phase_pos, phase_neg, dict_ref, input_d_tot, input_bond_tot, filling, u, v1_arr, v2_arr, temperature)
+
+host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
+
+np.savez_compressed(
+    os.path.join(project_root, "schf_fixed_u_filling_half_t_4_em4_random_basis_mesh_30_2_2_pmap_over_v1_v2.npz"),
+    u=np.asarray([u]),
+    v1=np.asarray(v1_arr),
+    v2=np.asarray(v2_arr),
+    d=host_res["d"],
+    bond=host_res["bond"],
+    e_diff=host_res["e_diff"],
+    c_diff=host_res["c_diff"],
+    gse=host_res["gse"],
+    e_fermi=host_res["e_fermi"],
+    any_bi_fail=host_res["any_bi_fail"],
+    iters=host_res["iters"],
+)
+
