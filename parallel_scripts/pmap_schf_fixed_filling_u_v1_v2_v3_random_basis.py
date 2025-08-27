@@ -29,7 +29,7 @@ k_mesh_points = np.vstack([v1 + v2 for v1, v2 in product(b_0, b_1)])
 num_k_points = k_mesh_points.shape[0]
 
 nshell_tb = 2
-radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, nshells_tb)
+radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, nshell_tb)
 
 # in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
 # calculate the correlation matrix
@@ -45,7 +45,7 @@ Htb, e_all, v_all, v_all_dagger = hk_all_k_from_phases(mu, a_lists, t_arr, phase
 
 # generate data for ref_state wrt interaction neighbors
 nshell_v = 3
-radii_v, a_lists_v, deltas_v = build_buckets_per_shell(a, basis_frac, nshells_v)
+radii_v, a_lists_v, deltas_v = build_buckets_per_shell(a, basis_frac, nshell_v)
 phase_pos_v, phase_neg_v = precompute_k_phase_tables(deltas_v, a, k_mesh_points)
 dict_ref = prepare_reference_state(filling, a_lists_v, Htb, e_all, v_all, v_all_dagger, phase_pos_v, phase_neg_v, temperature)
 
