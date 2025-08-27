@@ -28,7 +28,8 @@ b_1 = np.linspace(-b[1] / 2, b[1] / 2, num_k_mesh, endpoint=False)
 k_mesh_points = np.vstack([v1 + v2 for v1, v2 in product(b_0, b_1)])
 num_k_points = k_mesh_points.shape[0]
 
-radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
+nshell_tb = 2
+radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, nshells_tb)
 
 # in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
 # calculate the correlation matrix
@@ -41,7 +42,12 @@ t_arr = np.array([t_nn, t_nnn])
 
 phase_pos, phase_neg = precompute_k_phase_tables(deltas, a, k_mesh_points)
 Htb, e_all, v_all, v_all_dagger = hk_all_k_from_phases(mu, a_lists, t_arr, phase_neg)
-dict_ref = prepare_reference_state(filling, a_lists, Htb, e_all, v_all, v_all_dagger, phase_pos, phase_neg, temperature)
+
+# generate data for ref_state wrt interaction neighbors
+nshell_v = 3
+radii_v, a_lists_v, deltas_v = build_buckets_per_shell(a, basis_frac, nshells_v)
+phase_pos_v, phase_neg_v = precompute_k_phase_tables(deltas_v, a, k_mesh_points)
+dict_ref = prepare_reference_state(filling, a_lists_v, Htb, e_all, v_all, v_all_dagger, phase_pos_v, phase_neg_v, temperature)
 
 '''
 SCHF parameters:
@@ -65,16 +71,16 @@ nshell = v_arr.shape[1]
 ndeltas = deltas.shape[0]
 input_bond_tot = jnp.zeros((num_channel, ndeltas, 2, nshell, norb, norb), dtype=jnp.complex128)
 Htb = jnp.stack((jnp.asarray(Htb), jnp.asarray(Htb)), axis=1)
-a_lists = jnp.asarray(a_lists)
-phase_pos = jnp.asarray(phase_pos)
-phase_neg = jnp.asarray(phase_neg)
+a_lists_v = jnp.asarray(a_lists_v)
+phase_pos_v = jnp.asarray(phase_pos_v)
+phase_neg_v = jnp.asarray(phase_neg_v)
 # double the filling to get the correct number of electrons
 filling = filling * 2
 
 '''
 SCHF parallel run:
 '''
-res = schf_fixed_filling_pmap_over_u(schf_single_job, Htb, a_lists, phase_pos, phase_neg, dict_ref, input_d_tot, input_bond_tot, filling, u_arr, v_arr, temperature)
+res = schf_fixed_filling_pmap_over_u(schf_single_job, Htb, a_lists_v, phase_pos_v, phase_neg_v, dict_ref, input_d_tot, input_bond_tot, filling, u_arr, v_arr, temperature)
 
 host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
 
