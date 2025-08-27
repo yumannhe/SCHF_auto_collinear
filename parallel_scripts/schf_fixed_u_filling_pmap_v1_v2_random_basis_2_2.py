@@ -45,7 +45,7 @@ radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
 # calculate the correlation matrix
 temperature = 4E-4
 # filling has to be 4 times before, as we have 4 unit cells in the 2x2 square lattice
-filling = 1/2*4
+filling = 0.4*4
 mu = 2
 t_nn = 1
 t_nnn = -0.025
