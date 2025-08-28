@@ -51,10 +51,8 @@ SCHF parameters:
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 input_basis = np.load(os.path.join(project_root, 'functions_parameters', 'filling_1_rerun_basis_v1_v2.npz'))
 input_d_tot = input_basis["d"]
-input_d_tot = input_d_tot * filling/10.0
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
 input_bond_tot = input_basis["bond"]
-input_bond_tot = input_bond_tot * filling/10.0
 input_bond_tot = jnp.asarray(input_bond_tot, dtype=jnp.complex128)
 num_channel = input_d_tot.shape[0]
 
