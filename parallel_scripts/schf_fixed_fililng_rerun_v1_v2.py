@@ -65,7 +65,6 @@ v2_arr = jnp.zeros(num_u_points)
 v_arr = jnp.stack((v1_arr, v2_arr), axis=1)
 nshell = v_arr.shape[1]
 ndeltas = deltas.shape[0]
-input_bond_tot = jnp.zeros((num_channel, ndeltas, 2, nshell, norb, norb), dtype=jnp.complex128)
 Htb = jnp.stack((jnp.asarray(Htb), jnp.asarray(Htb)), axis=1)
 a_lists = jnp.asarray(a_lists)
 phase_pos = jnp.asarray(phase_pos)
