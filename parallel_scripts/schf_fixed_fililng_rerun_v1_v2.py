@@ -61,7 +61,7 @@ u_arr = jnp.linspace(0, 0.75, num_u_points)
 # num_u_points = 1
 # u_arr = jnp.array([0.4])
 v1_arr = u_arr
-v2_arr = jnp.zeros(num_u_points)
+v2_arr = u_arr.copy()
 v_arr = jnp.stack((v1_arr, v2_arr), axis=1)
 nshell = v_arr.shape[1]
 ndeltas = deltas.shape[0]
