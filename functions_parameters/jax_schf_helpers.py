@@ -266,6 +266,7 @@ def prepare_reference_state(
         'ne': jnp.real(ne).astype(jnp.float64),
         'converged': converged,
         'iters': jnp.real(iters).astype(jnp.float64),
+        "bond_orders": bond_orders,
     }
 
 
