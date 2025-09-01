@@ -1,10 +1,11 @@
+'''Test of the a single grid of SCHF'''
 import jax
 import jax.numpy as jnp
 import numpy as np
 import os
 from itertools import product
 
-from functions_parameters.jax_schf_kernel import schf_fixed_filling_u_pmap_over_v1_v2, schf_single_job
+from functions_parameters.jax_schf_kernel import schf_fixed_filling_pmap_over_u, schf_single_job
 from functions_parameters.jax_schf_helpers import *
 from functions_parameters.universal_parameters import a, b
 from functions_parameters.bond_table_generator import build_buckets_per_shell
@@ -15,6 +16,7 @@ _jax_config.update("jax_enable_x64", True)  # use float64 by default
 
 Array = jnp.ndarray
 PyTree = Any
+
 
 '''
 preparation:
@@ -33,7 +35,7 @@ radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
 # in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
 # calculate the correlation matrix
 temperature = 4E-4
-filling = 1/4
+filling = 1/2
 mu = 2
 t_nn = 1
 t_nnn = -0.025
@@ -44,22 +46,26 @@ Htb, e_all, v_all, v_all_dagger = hk_all_k_from_phases(mu, a_lists, t_arr, phase
 dict_ref = prepare_reference_state(filling, a_lists, Htb, e_all, v_all, v_all_dagger, phase_pos, phase_neg, temperature)
 
 '''
-SCHF parameters:
+SCHF setup
 '''
-# Get the project root directory (parent of parallel_scripts)
+# read the basis input from the written file
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr.npy'))
-input_d_tot = input_d_tot * filling/10.0
+input_basis = np.load(os.path.join(project_root, 'functions_parameters', 'filling_1_rerun_basis_v1_v2.npz'))
+input_d_tot = input_basis["d"]
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
-num_channel = input_d_tot.shape[0]
+input_bond_tot = input_basis["bond"]
+input_bond_tot = jnp.asarray(input_bond_tot, dtype=jnp.complex128)
 
-u = 0.75
-num_v1_points = 16
-v1_arr = jnp.linspace(0, u, num_v1_points)
+# test explicitly for the neighboring point and see what is the output
+input_d = input_d_tot[3]
+input_bond = input_bond_tot[3]
+
+u_arr = jnp.array([0.2])
+v1_arr = jnp.array([0.75])
 v2_arr = v1_arr.copy()
-nshell = 2
+v_arr = jnp.concatenate((v1_arr, v2_arr))
+nshell = v_arr.shape[0]
 ndeltas = deltas.shape[0]
-input_bond_tot = jnp.zeros((num_channel, ndeltas, 2, nshell, norb, norb), dtype=jnp.complex128)
 Htb = jnp.stack((jnp.asarray(Htb), jnp.asarray(Htb)), axis=1)
 a_lists = jnp.asarray(a_lists)
 phase_pos = jnp.asarray(phase_pos)
@@ -67,25 +73,5 @@ phase_neg = jnp.asarray(phase_neg)
 # double the filling to get the correct number of electrons
 filling = filling * 2
 
-'''
-SCHF parallel run:
-'''
-res = schf_fixed_filling_u_pmap_over_v1_v2(schf_single_job, Htb, a_lists, phase_pos, phase_neg, dict_ref, input_d_tot, input_bond_tot, filling, u, v1_arr, v2_arr, temperature)
-
-host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
-
-np.savez_compressed(
-    os.path.join(project_root, "schf_fixed_u_filling_0p5_t_4_em4_random_basis_mesh_60_pmap_over_v1_v2.npz"),
-    u=np.asarray([u]),
-    v1=np.asarray(v1_arr),
-    v2=np.asarray(v2_arr),
-    d=host_res["d"],
-    bond=host_res["bond"],
-    e_diff=host_res["e_diff"],
-    c_diff=host_res["c_diff"],
-    gse=host_res["gse"],
-    e_fermi=host_res["e_fermi"],
-    any_bi_fail=host_res["any_bi_fail"],
-    iters=host_res["iters"],
-)
+res = schf_single_job(Htb, a_lists, phase_pos, phase_neg, dict_ref, input_d, input_bond, filling, u_arr, v_arr, temperature)
 
