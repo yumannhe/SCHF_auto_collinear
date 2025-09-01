@@ -19,9 +19,9 @@ To ensure Ferri without AFM, we generate random positive numbers for the ferri c
 '''
 
 # set up the seed
-rng = np.random.default_rng(111)      
+rng = np.random.default_rng(121)      
 # allowed number of mixing for e2 basis
-num_mixing = 3
+num_mixing = 5
 # norb
 norb = a1_basis.shape[0]
 # e2_basis
@@ -49,4 +49,4 @@ basis_e2_ferri = np.stack((basis_e2_ferri, -basis_e2_ferri), axis=1)
 
 total_channel_arr = np.concatenate((ferro_basis[np.newaxis,:,:], basis_e2_p, basis_e2_ferro, basis_e2_ferri), axis=0)
 
-np.save('random_basis_arr.npy', total_channel_arr)
+np.save('random_basis_arr_121.npy', total_channel_arr)
