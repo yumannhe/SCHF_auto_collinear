@@ -47,10 +47,10 @@ except ImportError as e:
 # Test file access
 try:
     import numpy as np
-    data = np.load('functions_parameters/random_basis_arr.npy')
-    print(f"✅ random_basis_arr.npy loaded successfully, shape: {data.shape}")
+    data = np.load('functions_parameters/random_basis_arr_111.npy')
+print(f"✅ random_basis_arr_111.npy loaded successfully, shape: {data.shape}")
 except Exception as e:
-    print(f"❌ Failed to load random_basis_arr.npy: {e}")
+    print(f"❌ Failed to load random_basis_arr_111.npy: {e}")
 
 print("\n🎉 Environment setup complete! You can now run your SCHF calculations.")
 print("Available functions:")
