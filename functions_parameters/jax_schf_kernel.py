@@ -311,7 +311,7 @@ def schf_fixed_u_v_pair_pmap_over_filling(
     
     # For a single filling, sweep all u,v and all channels locally (keeps d/bond paired)
     def run_for_one_filling(filling_i):
-        dict_ref_i = prepare_reference_state(filling_i, a_list, Htb[:,0,:,:], e_all, v_all, v_all_dagger, phase_pos, phase_neg, temperature)
+        dict_ref_i = prepare_reference_state(filling_i/2, a_list, Htb[:,0,:,:], e_all, v_all, v_all_dagger, phase_pos, phase_neg, temperature)
         # over channels (pair d and bond via same channel index)
         def over_channel(dict_ref_i, u_i, v_i):
             return vmap(run_one, in_axes=(None, None, None, None, 0, 0))(
