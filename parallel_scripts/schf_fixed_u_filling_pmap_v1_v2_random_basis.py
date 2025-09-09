@@ -33,7 +33,7 @@ radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
 # in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
 # calculate the correlation matrix
 temperature = 4E-4
-filling = 1/4
+filling = 3/4
 mu = 2
 t_nn = 1
 t_nnn = -0.025
@@ -48,7 +48,7 @@ SCHF parameters:
 '''
 # Get the project root directory (parent of parallel_scripts)
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr_111.npy'))
+input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr_121.npy'))
 input_d_tot = input_d_tot * filling/10.0
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
 num_channel = input_d_tot.shape[0]
@@ -75,7 +75,7 @@ res = schf_fixed_filling_u_pmap_over_v1_v2(schf_single_job, Htb, a_lists, phase_
 host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
 
 np.savez_compressed(
-    os.path.join(project_root, "schf_fixed_u_filling_0p5_t_4_em4_random_basis_mesh_60_pmap_over_v1_v2.npz"),
+    os.path.join(project_root, "schf_fixed_u_filling_1p5_t_4_em4_random_basis_mesh_60_pmap_over_v1_v2_seed_121.npz"),
     u=np.asarray([u]),
     v1=np.asarray(v1_arr),
     v2=np.asarray(v2_arr),

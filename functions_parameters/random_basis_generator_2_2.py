@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import numpy.linalg as la
 
@@ -12,7 +13,7 @@ we have 12 basis in total, with 2 in A1, 1 in B1, 1 in B2, 4 in E1 and E2 respec
 
 The orthonormal spatial basis do not naturally have a uniform basis, 
 so we first generate the uniform basis for ferro basis,
-and also construct positive, symmetric but non-uniform basis as ferri basis.
+and then construct ferri basis by allowing random mixing of the non-symmetric nematic basis.
 
 On base of the above, we can generate the random basis for 2x2 square lattice.
 '''
@@ -29,6 +30,7 @@ norb = basis.shape[0]
 # uniform_basis = -basis[:,0]-basis[:,1]*uniform_basis_coeff
 # ferro_basis = np.stack((uniform_basis, -uniform_basis))
 uniform_basis = np.ones((norb,))/np.sqrt(norb)
+# obtain symmetric ferro basis
 ferro_basis = np.stack((uniform_basis, -uniform_basis))
 
 # find ferri basis
@@ -46,10 +48,11 @@ random_basis_p = np.concatenate((basis[:,2:4].T,random_basis_2d), axis=0)
 random_basis_p = np.stack((random_basis_p, random_basis_p), axis=1)
 
 # construct ferri basis for each channel
-random_ferri_coef = rng.uniform(0, 1, size=(1,))
-random_basis_ferri = ferri_basis[np.newaxis,:,:]*random_ferri_coef + random_basis_p
-random_basis_ferri /= la.norm(random_basis_ferri, axis=2, keepdims=True)
-random_basis_ferri = np.concatenate((random_basis_ferri, ferri_basis.reshape(1, 2, norb)), axis=0)
+random_ferri_coef = rng.uniform(-1, 1, size=(4,2))
+random_ferri_coef /= la.norm(random_ferri_coef, axis=1, keepdims=True)
+random_basis_ferri = np.einsum('ij,ijk->ik', random_ferri_coef, basis_2d)
+random_basis_ferri = np.concatenate((basis[:,2:4].T, random_basis_ferri), axis=0)
+random_basis_ferri = np.stack((random_basis_ferri, -random_basis_ferri), axis=1)
 
 # construct ferro basis for each channel
 random_ferro_coef = rng.uniform(0, 1, size=(1,))

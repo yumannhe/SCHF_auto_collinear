@@ -11,11 +11,11 @@ We try to generate random basis based on the following rules:
 2. We hope to distinguish between ferro and ferri channels.
 3. We neglect completely symmetric channels.
 
-Therefore, naturally we have only 1 ferro channel obtained from a1_basis.
+Therefore, naturally we have only 1 symmetricferro channel obtained from a1_basis.
 
 Then for the e2 basis, we allow random mixing between e2_basis1 and e2_basis2.
-and then we add uniform ferro basis to form the ferro channel.
-To ensure Ferri without AFM, we generate random positive numbers for the ferri channel.
+and then we add uniform ferro basis to form the symmetric ferro channel.
+Then we obtain ferri basis by allowing random mixing of the nematic basis.
 '''
 
 # set up the seed
@@ -43,8 +43,9 @@ basis_e2_ferro = random_coefficients_ferro*ferro_basis + basis_e2_p
 basis_e2_ferro /= la.norm(basis_e2_ferro, axis=2, keepdims=True)
 
 # generate random coefficients for ferri basis
-basis_e2_ferri = rng.uniform(0, 1, size=(num_mixing, norb))
-basis_e2_ferri /= la.norm(basis_e2_ferri, axis=1, keepdims=True)
+basis_e2_ferri_coef = rng.uniform(-1, 1, size=(num_mixing, 2))
+basis_e2_ferri_coef /= la.norm(basis_e2_ferri_coef, axis=1, keepdims=True)
+basis_e2_ferri = basis_e2_ferri_coef@e2_basis
 basis_e2_ferri = np.stack((basis_e2_ferri, -basis_e2_ferri), axis=1)
 
 total_channel_arr = np.concatenate((ferro_basis[np.newaxis,:,:], basis_e2_p, basis_e2_ferro, basis_e2_ferri), axis=0)
