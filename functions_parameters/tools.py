@@ -141,3 +141,22 @@ def translation_check_d(d, translation_a1, translation_a2):
     translation_a2_diff_m = np.max(np.abs(translation_a2@magnetism_arr - magnetism_arr))
     return translation_a1_diff_c, translation_a2_diff_c, translation_a1_diff_m, translation_a2_diff_m
 
+def translation_check_d_updated(d, translation_a1, translation_a2, translation_a3):
+    '''
+    check the translation symmetry of the density of correlation matrix o   
+    translation_a1, translation_a2, translation_a3 are the translation matrices for the a1, a2, and a3 basis.
+    return the difference between the correlation matrix o and the translation matrices.
+    '''
+    density_arr = d[0] + d[1]
+    magnetism_arr = d[0] - d[1]
+    translation_a1_diff_c = np.max(np.abs(translation_a1@density_arr - density_arr))
+    translation_a2_diff_c = np.max(np.abs(translation_a2@density_arr - density_arr))
+    translation_a3_diff_c = np.max(np.abs(translation_a3@density_arr - density_arr))    
+    translation_a1_diff_m = np.max(np.abs(translation_a1@magnetism_arr - magnetism_arr))
+    translation_a2_diff_m = np.max(np.abs(translation_a2@magnetism_arr - magnetism_arr))
+    translation_a3_diff_m = np.max(np.abs(translation_a3@magnetism_arr - magnetism_arr))
+    ts_a1_diff = np.max(np.array([translation_a1_diff_c, translation_a1_diff_m]))
+    ts_a2_diff = np.max(np.array([translation_a2_diff_c, translation_a2_diff_m]))
+    ts_a3_diff = np.max(np.array([translation_a3_diff_c, translation_a3_diff_m]))
+    return np.array([ts_a1_diff, ts_a2_diff, ts_a3_diff])
+    
