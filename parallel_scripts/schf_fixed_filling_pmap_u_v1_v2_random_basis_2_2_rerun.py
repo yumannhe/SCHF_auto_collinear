@@ -60,10 +60,10 @@ SCHF parameters:
 '''
 # Get the project root directory (parent of parallel_scripts)
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'filling_0p8_rerun_basis_2_2.npz'))
-input_d_tot = input_d_tot["d"]
+input_basis = np.load(os.path.join(project_root, 'functions_parameters', 'filling_0p8_rerun_basis_2_2.npz'))
+input_d_tot = input_basis["d"]
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
-input_bond_tot = input_d_tot["bond"]
+input_bond_tot = input_basis["bond"]
 input_bond_tot = jnp.asarray(input_bond_tot, dtype=jnp.complex128)
 num_channel = input_d_tot.shape[0]
 
