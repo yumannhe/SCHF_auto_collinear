@@ -45,7 +45,7 @@ radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
 # calculate the correlation matrix
 temperature = 4E-4
 # filling has to be 4 times before, as we have 4 unit cells in the 2x2 square lattice
-filling = 0.4*4
+filling = 1/4*4
 mu = 2
 t_nn = 1
 t_nnn = -0.025
@@ -91,7 +91,7 @@ res = schf_fixed_filling_pmap_over_u(schf_single_job, Htb, a_lists, phase_pos, p
 host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
 
 np.savez_compressed(
-    os.path.join(project_root, "schf_filling_0p8_t_4_em4_random_basis_mesh_30_2_2_seed_121.npz"),
+    os.path.join(project_root, "schf_filling_0p5_t_4_em4_random_basis_mesh_30_2_2_seed_121.npz"),
     u=np.asarray(u_arr),
     v=np.asarray(v_arr),
     d=host_res["d"],

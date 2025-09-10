@@ -33,7 +33,7 @@ radii, a_lists, deltas = build_buckets_per_shell(a, basis_frac, 2)
 # in this case, as both TB model and interaction, we include up to NNN, the a_list and deltas are the same
 # calculate the correlation matrix
 temperature = 4E-4
-filling = 3/4
+filling = 1/4
 mu = 2
 t_nn = 1
 t_nnn = -0.025
