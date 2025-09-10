@@ -60,7 +60,7 @@ SCHF parameters:
 '''
 # Get the project root directory (parent of parallel_scripts)
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr_2_2.npy'))
+input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr_2_2_121.npy'))
 # similarly, divided by the factor of 4 to match the correct filling
 input_d_tot = input_d_tot * filling/10.0/4.0
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
