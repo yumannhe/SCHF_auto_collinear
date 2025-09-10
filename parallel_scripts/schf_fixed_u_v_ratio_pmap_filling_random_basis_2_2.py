@@ -57,7 +57,7 @@ SCHF parameters:
 '''
 # Get the project root directory (parent of parallel_scripts)
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr_2_2.npy'))
+input_d_tot = np.load(os.path.join(project_root, 'functions_parameters', 'random_basis_arr_2_2_121.npy'))
 input_d_tot = input_d_tot/20.0
 input_d_tot = jnp.asarray(input_d_tot, dtype=jnp.complex128)
 num_channel = input_d_tot.shape[0]
@@ -88,7 +88,7 @@ res = schf_fixed_u_v_pair_pmap_over_filling(schf_single_job, Htb, a_lists, e_all
 host_res = jax.tree_util.tree_map(lambda x: np.asarray(jax.device_get(x)), res)
 
 np.savez_compressed(
-    os.path.join(project_root, "u_v1_v2_t_4_em4_random_basis_mesh_30_2_2_pmap_over_filling.npz"),
+    os.path.join(project_root, "u_v1_v2_t_4_em4_mesh_30_2_2_pmap_over_filling_seed_121.npz"),
     filling=np.asarray(filling_arr),
     u=np.asarray(u_arr),
     v=np.asarray(v_arr),
