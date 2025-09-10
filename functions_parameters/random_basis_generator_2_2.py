@@ -22,7 +22,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 basis = np.load(os.path.join(project_root, 'functions_parameters', '2_2_uc_irrep_basis_spatial.npy'))
 
 # random seed
-rng = np.random.default_rng(121)
+rng = np.random.default_rng(269)
 
 norb = basis.shape[0]
 # construct the uniform basis 
@@ -63,4 +63,4 @@ random_basis_ferro = np.concatenate((random_basis_ferro, ferro_basis.reshape(1, 
 # put everything together
 total_channel_arr = np.concatenate((random_basis_p, random_basis_ferro, random_basis_ferri), axis=0)
 
-np.save('random_basis_arr_2_2_121.npy', total_channel_arr)
+np.save('random_basis_arr_2_2_269.npy', total_channel_arr)
