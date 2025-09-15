@@ -33,7 +33,7 @@ class PlotConfig:
     # --- ring (magnetism) thickness from f_measure (points) ---
     # thickness grows only OUTWARD around the marker (uniform circular ring)
     m_min: float = threshold                       # FIXED global min of magnetization metric
-    m_max: float = 0.5                      # FIXED global max of magnetization metric
+    m_max: float = 0.45                      # FIXED global max of magnetization metric
     t_min: float = 1.6                     # thinnest ring (points)
     t_max: float = 5                       # thickest ring (points)
     ring_shape: str = "o"                    # outside ring shape: 'o' circle, 's' square, 'D' diamond
