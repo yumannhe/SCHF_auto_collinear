@@ -182,4 +182,4 @@ nematic_phase = [' R symmetric', ' C3 charge nematic', ' C2 charge nematic', ' n
 magnetism_phase = [' +', ' FM', ' AFri']
 
 phase_tot = list(i+j+m for i,j,m in product(ts_phase, nematic_phase, magnetism_phase))
-
+phase_1_1 = list(i+j for i,j in product(nematic_phase, magnetism_phase))
