@@ -1,6 +1,8 @@
 import numpy as np
 from functools import reduce
 import numpy.linalg as la
+from functions_parameters.universal_parameters import threshold
+
 
 def num2str(x_in, precision="{0:.3E}", num_zero=1E-12, simple_zero=True):
     """
@@ -145,4 +147,40 @@ def translation_check_d(d, translation_a1, translation_a2, translation_a3):
     ts_a2_diff = np.max(np.array([translation_a2_diff_c, translation_a2_diff_m]))
     ts_a3_diff = np.max(np.array([translation_a3_diff_c, translation_a3_diff_m]))
     return np.array([ts_a1_diff, ts_a2_diff, ts_a3_diff])
-    
+
+
+# the phase check function for nematci and magnetic part. 
+def phase_check_nematic_magnetic(d, c6, c3, c2, threshold=threshold):
+    '''
+    check the phase of the density of correlation matrix o 
+    c6, c3, c2 are the rotation matrices for the 6-fold, 3-fold, and 2-fold symmetry.
+    return the difference between the correlation matrix o and the rotation matrices and magnetic order.
+    '''
+    rs_recording = np.zeros((4))
+    m_recording = np.zeros((3))
+    len_symm_op = c6.shape[0]
+    c6_diff = np.zeros(len_symm_op)
+    c3_diff = np.zeros(len_symm_op)
+    c2_diff = np.zeros(len_symm_op)
+    for i in range(len_symm_op):
+        c6_diff[i], c3_diff[i], c2_diff[i], magnetism_arr = rot_symm_m_check_d(d, c6[i], c3[i], c2[i])
+    c6_diff = np.min(c6_diff)
+    c3_diff = np.min(c3_diff)
+    c2_diff = np.min(c2_diff)
+    if c6_diff < threshold:
+        rs_recording[0] = 1
+    elif c6_diff > threshold and c3_diff < threshold:
+        rs_recording[1] = 1
+    elif c2_diff < threshold and c6_diff > threshold:
+        rs_recording[2] = 1
+    else:
+        rs_recording[3] = 1
+    if np.max(np.abs(magnetism_arr)) > threshold:
+        if np.all(magnetism_arr > threshold) or np.all(magnetism_arr < -threshold):
+            m_recording[1] = 1
+        else:
+            m_recording[2] = 1
+    else:
+        m_recording[0] = 1
+    return rs_recording, m_recording, c6_diff, magnetism_arr
+

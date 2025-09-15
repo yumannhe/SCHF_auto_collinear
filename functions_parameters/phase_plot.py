@@ -1,5 +1,6 @@
 # phase_plot.py
 import numpy as np
+from functions_parameters.universal_parameters import threshold
 import matplotlib.pyplot as plt
 from matplotlib import colors as mcolors, cm
 from matplotlib.path import Path
@@ -15,32 +16,33 @@ class PlotConfig:
     Set these ONCE (or pass when calling) so all figures are comparable.
     """
     # --- nematic color scale (face colors) ---
-    threshold: float = 1e-2                  # symmetric/nematic split
+    threshold: float = threshold                  # symmetric/nematic split
     nem_vmin: float = threshold                  # lower bound for color scale (usually == threshold)
-    nem_vmax: float = 0.3                 # upper bound for color scale (FIXED across figures)
+    nem_vmax: float = 1.2                 # upper bound for color scale (FIXED across figures)
     cmap_name: str = "plasma"                # base cmap for nematicity
-    cmap_lo: float = 0.25                    # truncate dark end (0..1)
+    cmap_lo: float = 0.5                    # truncate dark end (0..1)
     cmap_hi: float = 0.95                    # truncate light end (0..1)
     under_color: str = "#A6CEE3"             # face color for values < nem_vmin (symmetric)
 
     # --- dot size from energy (area, pt^2) ---
-    size_min: float = 25.0                  # smallest marker area (≈ 6 pt diameter)
-    size_max: float = 200.0                # largest marker area (≈ 14 pt diameter)
-    energy_min: float = 0.0                  # FIXED global min |E| (set for the whole paper)
-    energy_max: float = 0.8                  # FIXED global max |E| (set for the whole paper)
+    size_min: float = 49                # smallest marker area (≈ 6 pt diameter)
+    size_max: float = 250                # largest marker area (≈ 14 pt diameter)
+    energy_min: float = 1E-8                 # FIXED global min |E| (set for the whole paper)
+    energy_max: float = 0.2               # FIXED global max |E| (set for the whole paper)
 
     # --- ring (magnetism) thickness from f_measure (points) ---
     # thickness grows only OUTWARD around the marker (uniform circular ring)
     m_min: float = threshold                       # FIXED global min of magnetization metric
     m_max: float = 0.5                      # FIXED global max of magnetization metric
-    t_min: float = 0.3                      # thinnest ring (points)
-    t_max: float = 1.8                       # thickest ring (points)
+    t_min: float = 1.6                     # thinnest ring (points)
+    t_max: float = 5                       # thickest ring (points)
     ring_shape: str = "o"                    # outside ring shape: 'o' circle, 's' square, 'D' diamond
 
     # --- ring classes (edge colors) ---
-    color_fm: str = "#08306B"                # dark navy for FM
-    color_ferri_afm: str = "#5D4037"         # dark brown for Ferri/AFM
+    color_fm: str = "#8C6D1F"              # dark navy for FM
+    color_ferri_afm: str = "#B4B4B4"         # dark brown for Ferri/AFM
     color_masking: str = '#FFFFFF'         # white for masking
+
 
     # --- outline for base markers (helps on printers) ---
     base_outline_color: str = "black"
@@ -166,15 +168,20 @@ def plot_phase_map(
     ring_color[fp == 2] = cfg.color_ferri_afm
     ring_col_sel = np.asarray(ring_color, dtype=object)[has_ring].tolist()
 
+
     # ---------- Layer 1: OUTSIDE RING (stroke-only circle bigger than fill) ----------
     # (we keep ring shape circular for uniform perception; change marker in scatter below for other shapes)
+    # ax.scatter(x[has_ring], y[has_ring], s=s_outer[has_ring],
+    #            facecolors="none", edgecolors=ring_col_sel,
+    #            linewidths=2 * thick[has_ring], marker=cfg.ring_shape, zorder=2.0)
     ax.scatter(x[has_ring], y[has_ring], s=s_outer[has_ring],
-               facecolors="none", edgecolors=ring_col_sel,
-               linewidths=2 * thick[has_ring], marker=cfg.ring_shape, zorder=2.0)
+               c=ring_col_sel, marker=cfg.ring_shape, edgecolors=cfg.base_outline_color,
+                    linewidths=cfg.base_outline_lw, zorder=2.0)
 
     # ---------- Layer 2: INNER MASK CIRCLE (exact fill radius, same face RGBA) -------
     ax.scatter(x[has_ring], y[has_ring], s=s_inner[has_ring],
-               facecolors=cfg.color_masking, edgecolors="none",
+               facecolors=cfg.color_masking, edgecolors=cfg.base_outline_color,
+                    linewidths=cfg.base_outline_lw,
                marker="o", zorder=2.2)
 
     # ---------- Layer 3: BASE FILL (shape-coded), no edges ---------------------------
@@ -210,6 +217,6 @@ def plot_phase_map(
         cb.solids.set_edgecolor("face")
     cb.set_label("nematic measure")
 
-    ax.set_xlabel("v1")
-    ax.set_ylabel("v2")
+    # ax.set_xlabel("v1")
+    # ax.set_ylabel("v2")
     return sc  # return the mappable if the caller wants more control
