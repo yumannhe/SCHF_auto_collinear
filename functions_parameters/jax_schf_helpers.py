@@ -267,6 +267,7 @@ def prepare_reference_state(
         'converged': converged,
         'iters': jnp.real(iters).astype(jnp.float64),
         "bond_orders": bond_orders,
+        "density_vec": density_vec,
     }
 
 
