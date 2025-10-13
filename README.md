@@ -1,7 +1,7 @@
-SCHF Auto Colinear
+SCHF Auto Collinear
 ===================
 
-Self‑consistent Hartree–Fock (SCHF) calculations for colinear spin systems, written with JAX for fast CPU/GPU execution. The code builds tight‑binding Hamiltonians from precomputed bond tables, supports multi‑shell density–density interactions, and offers vectorized and pmap‑parallel solvers for large parameter sweeps and phase-diagram generation.
+Self‑consistent Hartree–Fock (SCHF) calculations for collinear spin systems, written with JAX for fast CPU/GPU execution. The code builds tight‑binding Hamiltonians from precomputed bond tables, supports multi‑shell density–density interactions, and offers vectorized and pmap‑parallel solvers for large parameter sweeps and phase-diagram generation.
 
 
 Key Features
