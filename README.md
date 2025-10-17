@@ -1,4 +1,5 @@
-SCHF Auto Collinear
+Interplay of ferromagnetism, nematicity and Fermi surface nesting in kagome flat
+band
 ===================
 [![arXiv](https://img.shields.io/badge/arXiv-2510.14593-B31B1B)](https://arxiv.org/abs/2510.14593)
 
